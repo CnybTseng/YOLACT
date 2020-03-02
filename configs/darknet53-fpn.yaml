@@ -1,3 +1,0 @@
-backbone:
-    name: 'DarkNet53'
-    args: ([3,4,6,3],)

@@ -62,6 +62,7 @@ _C.solver.batch_size = 8
 
 _C.backbone = CN()
 _C.backbone.name = 'ResNet101'
+_C.backbone.insize = 550
 _C.backbone.args = ([3,4,23,3],)
 _C.backbone.selected_layers = (1,2,3)
 
@@ -92,6 +93,7 @@ _C.mask.head_layer_params = [{'kernel_size':3,'padding':1}]
 _C.mask.share_predict_head = True
 _C.mask.aspect_ratios = [[[1,0.5,2]]] * 5
 _C.mask.scales = [[24],[48],[96],[192],[384]]
+_C.mask.use_square_anchor = True
 _C.mask.prototype = CN()
 _C.mask.prototype.use_grid = False
 _C.mask.prototype.bias = False
@@ -101,8 +103,9 @@ _C.mask.prototype.split_by_head = False
 _C.mask.prototype.as_features = False
 _C.mask.prototype.coeff_gate = False
 _C.mask.prototype.coeff_activation = 'tanh'
+_C.mask.prototype.proto_activation = 'relu'
 _C.mask.use_maskiou = False
 _C.mask.use_mask_scoring = False
 _C.mask.use_instance_coeff = False
 _C.mask.use_class_existence_loss = False
-_C.mask.use_semantic_segmentation_loss = False
+_C.mask.use_semantic_segmentation_loss = True

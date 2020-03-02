@@ -17,12 +17,11 @@ def parse_args():
 def main():
     net = Yolact(cfg)
     x = torch.rand(1, 3, 550, 550)
-    ys = net(x)
+    y = net(x)
     print(net)
-    for y in ys:
-        print(f"{y.size()}")
+    for k, v in y.items():
+        print(f"{k}: {v.size()}")
 
 if __name__ == '__main__':
     parse_args()
-    print(cfg)
     main()
