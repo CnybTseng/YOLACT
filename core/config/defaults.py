@@ -109,3 +109,12 @@ _C.mask.use_mask_scoring = False
 _C.mask.use_instance_coeff = False
 _C.mask.use_class_existence_loss = False
 _C.mask.use_semantic_segmentation_loss = True
+
+# --------------------------------------------------------------------------------
+# Decoder
+# --------------------------------------------------------------------------------
+
+_C.decoder = CN()
+_C.decoder.topk = 200
+_C.decoder.cnfd_thresh = 0.05
+_C.decoder.nms_thresh = 0.5

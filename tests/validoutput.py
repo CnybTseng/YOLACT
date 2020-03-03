@@ -3,8 +3,9 @@ import sys
 import torch
 import argparse
 sys.path.append('.')
-from core.config import cfg
 from core import Yolact
+from core.config import cfg
+from core.layers import YolactDecoder
 
 def parse_args():
     parser = argparse.ArgumentParser(description="Validate the correctness of the model's outputs")
@@ -25,11 +26,14 @@ def main(args):
     net.load_state_dict(torch.load(args.model))
     net.eval()
     
+    detout = None
+    decoder = YolactDecoder(cfg)
     input = torch.load(os.path.join(args.baseline_path, 'input.pt'), map_location=device)
     with torch.no_grad():
         output = net(input)
+        detout = decoder(output)
     
-    # Baseline data are coming from D. Bolya's implementation
+    # Baseline data are coming from D. Bolya's implementation output
     bbox_baseline = torch.load(os.path.join(args.baseline_path, 'loc.pt'), map_location=device)
     clas_baseline = torch.load(os.path.join(args.baseline_path, 'conf.pt'), map_location=device)
     mask_baseline = torch.load(os.path.join(args.baseline_path, 'mask.pt'), map_location=device)
@@ -41,6 +45,23 @@ def main(args):
     print(f"mask output is correct?{torch.equal(mask_baseline, output['mask'])}")
     print(f"prir output is correct?{torch.equal(prir_baseline, output['prir'])}")
     print(f"prot output is correct?{torch.equal(prot_baseline, output['prot'])}")
+    
+    bbox_baseline = torch.load('tests/data/boxes.pt', map_location=device)    
+    mask_baseline = torch.load('tests/data/masks.pt', map_location=device)
+    cidx_baseline = torch.load('tests/data/classes.pt', map_location=device)
+    clas_baseline = torch.load('tests/data/scores.pt', map_location=device)
+    
+    print(f"bbox output is correct?{torch.equal(bbox_baseline, detout[0]['bbox'])}")   
+    print(f"mask output is correct?{torch.equal(mask_baseline, detout[0]['mask'])}")
+    print(f"cidx output is correct?{torch.equal(cidx_baseline, detout[0]['cidx'])}")
+    print(f"clas output is correct?{torch.equal(clas_baseline, detout[0]['clas'])}")
+    
+    delta = torch.abs(bbox_baseline - detout[0]['bbox'])
+    print(f"bbox difference: {delta}")
+    
+    for do in detout:
+        for key, value in do.items():
+            print(f"{key} {value}")
 
 if __name__ == '__main__':
     args = parse_args()
