@@ -24,8 +24,8 @@ class YolactDecoder(object):
             if torch.nonzero(keeps).size(0) == 0:
                 continue
             decoded_bbox = self._decode(bbox[batch, keeps, :], prir[keeps, :])
-            _bbox, _mask, _cidx, _clas = self._nms(decoded_bbox, clas[batch, 1:, keeps], mask[batch, keeps, :])
-            detout.append({'bbox':_bbox, 'mask':_mask, 'cidx':_cidx, 'clas':_clas})
+            _bbox, _mask, _cate, _clas = self._nms(decoded_bbox, clas[batch, 1:, keeps], mask[batch, keeps, :])
+            detout.append({'bbox':_bbox, 'mask':_mask, 'cate':_cate, 'clas':_clas, 'prot':prot[batch]})
 
         return detout
 
@@ -40,7 +40,7 @@ class YolactDecoder(object):
         num_classes = clas.size(0)
         _bbox = bbox * self.imgsize
         indices = torch.arange(bbox.size(0), device=bbox.device)
-        nms_cidx = []
+        nms_cate = []
         nms_inds = []
         nms_clas = []
         for cid in range(num_classes):
@@ -51,11 +51,11 @@ class YolactDecoder(object):
             keep_bbox = _bbox[keeps, :]
             keep_clas = clas[cid, keeps]
             keeps = self._nms_per_class(keep_bbox, keep_clas)
-            nms_cidx.append(torch.LongTensor([cid] * keeps.size(0)).to(bbox.device))
+            nms_cate.append(torch.LongTensor([cid] * keeps.size(0)).to(bbox.device))
             nms_inds.append(keep_inds[keeps])
             nms_clas.append(keep_clas[keeps])
         
-        nms_cidx = torch.cat(tensors=nms_cidx, dim=0)
+        nms_cate = torch.cat(tensors=nms_cate, dim=0)
         nms_inds = torch.cat(tensors=nms_inds, dim=0)
         nms_clas = torch.cat(tensors=nms_clas, dim=0)
         
@@ -65,13 +65,13 @@ class YolactDecoder(object):
         nms_clas, indices = torch.topk(nms_clas, topk, dim=0)        
         nms_bbox = nms_bbox[indices, :]
         nms_mask = nms_mask[indices, :]
-        nms_cidx = nms_cidx[indices]
+        nms_cate = nms_cate[indices]
               
-        return nms_bbox, nms_mask, nms_cidx, nms_clas
+        return nms_bbox, nms_mask, nms_cate, nms_clas
             
     def _nms_per_class(self, bbox, clas):
         num_dets = bbox.size(0)
-        keeps = torch.LongTensor(num_dets).fill_(1)
+        keeps = torch.ByteTensor(num_dets).fill_(1)
         areas = (bbox[:, 2] - bbox[:, 0] + 1) * (bbox[:, 3] - bbox[:, 1] + 1)
         indices = torch.argsort(clas, dim=0, descending=True)
         for _i in range(num_dets):

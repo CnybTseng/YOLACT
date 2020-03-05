@@ -1,8 +1,8 @@
 import os
 import torch
 import argparse
-from core.config import cfg
 from core import Yolact
+from core.config import cfg
 
 def parse_args():
     parser = argparse.ArgumentParser(description='YOLACT training script')

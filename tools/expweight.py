@@ -3,8 +3,8 @@ import sys
 import torch
 import argparse
 sys.path.append('.')
-from core.config import cfg
 from core import Yolact
+from core.config import cfg
 
 def parse_args():
     parser = argparse.ArgumentParser(description='Export weights of trained model from D. Bolya')
