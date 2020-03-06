@@ -22,8 +22,16 @@ class Drawer(object):
         mask = mask[:, :, :, None]
         obj = self.alpha * colors * mask.repeat(1, 1, 1, 3)
         bkg_mask = 1 - self.alpha * mask
-        for i in range(num_dets):
-            im = bkg_mask[i] * im + obj[i]
+
+        # Naive method
+        # for i in range(num_dets):
+        #     im = bkg_mask[i] * im + obj[i]
+
+        # More elegant meghod
+        # obj = torch.flip(obj, [0])
+        # bkg_mask = torch.flip(bkg_mask, [0])
+        bkg_mask = bkg_mask.cumprod(dim=0)
+        im = im * bkg_mask[-1, ...] + obj[0] + (obj[1:] * bkg_mask[:-1, ...]).sum(dim=0)
 
         im = (255 * im).byte().cpu().numpy()
         bbox = bbox.cpu().numpy().tolist()
